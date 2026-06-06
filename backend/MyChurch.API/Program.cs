@@ -20,7 +20,15 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Host.UseSerilog();
 
-// Database
+// Créer le dossier data pour SQLite en production
+if (builder.Environment.IsProduction())
+{
+    var dataDir = "/app/data";
+    if (!Directory.Exists(dataDir))
+        Directory.CreateDirectory(dataDir);
+}
+
+// Database SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -35,7 +43,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 // JWT
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new Exception("Jwt:Key missing");
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new Exception("Jwt:Key manquant");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -51,35 +59,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// CORS for React frontend
+// CORS — accepte Vercel + localhost
+var allowedOrigins = builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173";
 builder.Services.AddCors(options =>
     options.AddPolicy("ReactApp", policy =>
-        policy.WithOrigins(builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
+        policy.WithOrigins(allowedOrigins.Split(','))
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials()));
 
-// Services DI
+// DI Services
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IDonationService, StripeService>();
-builder.Services.AddScoped<IYouTubeService, YouTubeService>();
+builder.Services.AddScoped<IYouTubeService, YouTubeApiService>();
 
 // Controllers + Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "MyChurch API",
-        Version = "v1",
-        Description = "API for MyChurch App - Montréal"
-    });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "MyChurch API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
+        Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT"
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -92,6 +94,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Swagger en dev seulement
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -105,12 +108,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Auto-migrate on startup (dev only)
-if (app.Environment.IsDevelopment())
+// Migrations automatiques au démarrage
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
+    Log.Information("Base de données migrée avec succès");
 }
 
 app.Run();

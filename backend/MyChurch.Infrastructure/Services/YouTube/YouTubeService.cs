@@ -6,17 +6,17 @@ using MyChurch.Application.Interfaces;
 
 namespace MyChurch.Infrastructure.Services.YouTube;
 
-public class YouTubeService : IYouTubeService
+public class YouTubeApiService : IYouTubeService
 {
-    private readonly YouTubeService _youTubeClient;
+    private readonly YouTubeService _client;
     private readonly string _channelId;
 
-    public YouTubeService(IConfiguration config)
+    public YouTubeApiService(IConfiguration config)
     {
-        var apiKey = config["YouTube:ApiKey"] ?? throw new Exception("YouTube:ApiKey missing");
-        _channelId = config["YouTube:ChannelId"] ?? throw new Exception("YouTube:ChannelId missing");
+        var apiKey = config["YouTube:ApiKey"] ?? "placeholder";
+        _channelId = config["YouTube:ChannelId"] ?? "placeholder";
 
-        _youTubeClient = new YouTubeService(new BaseClientService.Initializer
+        _client = new YouTubeService(new BaseClientService.Initializer
         {
             ApiKey = apiKey,
             ApplicationName = "MyChurchApp"
@@ -25,63 +25,85 @@ public class YouTubeService : IYouTubeService
 
     public async Task<LiveStreamStatusDto?> GetLiveStreamStatusAsync()
     {
-        var request = _youTubeClient.Search.List("snippet");
-        request.ChannelId = _channelId;
-        request.EventType = SearchResource.ListRequest.EventTypeEnum.Live;
-        request.Type = "video";
-        request.MaxResults = 1;
+        try
+        {
+            var req = _client.Search.List("snippet");
+            req.ChannelId = _channelId;
+            req.EventType = SearchResource.ListRequest.EventTypeEnum.Live;
+            req.Type = "video";
+            req.MaxResults = 1;
 
-        var response = await request.ExecuteAsync();
-        var liveVideo = response.Items.FirstOrDefault();
+            var response = await req.ExecuteAsync();
+            var video = response.Items?.FirstOrDefault();
 
-        if (liveVideo == null) return new LiveStreamStatusDto(false, null, null, 0, null);
+            if (video == null)
+                return new LiveStreamStatusDto(false, null, null, 0, null);
 
-        return new LiveStreamStatusDto(
-            IsLive: true,
-            StreamId: liveVideo.Id.VideoId,
-            Title: liveVideo.Snippet.Title,
-            ViewerCount: 0,
-            StartedAt: liveVideo.Snippet.PublishedAtDateTimeOffset?.UtcDateTime
-        );
+            return new LiveStreamStatusDto(
+                IsLive: true,
+                StreamId: video.Id.VideoId,
+                Title: video.Snippet.Title,
+                ViewerCount: 0,
+                StartedAt: video.Snippet.PublishedAtDateTimeOffset?.UtcDateTime
+            );
+        }
+        catch
+        {
+            return new LiveStreamStatusDto(false, null, null, 0, null);
+        }
     }
 
     public async Task<IEnumerable<YouTubeVideoDto>> GetChannelVideosAsync(int maxResults = 10)
     {
-        var request = _youTubeClient.Search.List("snippet");
-        request.ChannelId = _channelId;
-        request.Order = SearchResource.ListRequest.OrderEnum.Date;
-        request.MaxResults = maxResults;
-        request.Type = "video";
+        try
+        {
+            var req = _client.Search.List("snippet");
+            req.ChannelId = _channelId;
+            req.Order = SearchResource.ListRequest.OrderEnum.Date;
+            req.MaxResults = maxResults;
+            req.Type = "video";
 
-        var response = await request.ExecuteAsync();
+            var response = await req.ExecuteAsync();
 
-        return response.Items.Select(v => new YouTubeVideoDto(
-            VideoId: v.Id.VideoId,
-            Title: v.Snippet.Title,
-            Description: v.Snippet.Description,
-            ThumbnailUrl: v.Snippet.Thumbnails.Medium.Url,
-            PublishedAt: v.Snippet.PublishedAtDateTimeOffset?.UtcDateTime ?? DateTime.UtcNow,
-            Duration: "",
-            ViewCount: 0
-        ));
+            return response.Items?.Select(v => new YouTubeVideoDto(
+                VideoId: v.Id.VideoId,
+                Title: v.Snippet.Title,
+                Description: v.Snippet.Description,
+                ThumbnailUrl: v.Snippet.Thumbnails?.Medium?.Url ?? "",
+                PublishedAt: v.Snippet.PublishedAtDateTimeOffset?.UtcDateTime ?? DateTime.UtcNow,
+                Duration: "",
+                ViewCount: 0
+            )) ?? Enumerable.Empty<YouTubeVideoDto>();
+        }
+        catch
+        {
+            return Enumerable.Empty<YouTubeVideoDto>();
+        }
     }
 
     public async Task<YouTubeVideoDto?> GetVideoDetailsAsync(string videoId)
     {
-        var request = _youTubeClient.Videos.List("snippet,statistics,contentDetails");
-        request.Id = videoId;
-        var response = await request.ExecuteAsync();
-        var video = response.Items.FirstOrDefault();
-        if (video == null) return null;
+        try
+        {
+            var req = _client.Videos.List("snippet,statistics,contentDetails");
+            req.Id = videoId;
+            var response = await req.ExecuteAsync();
+            var video = response.Items?.FirstOrDefault();
+            if (video == null) return null;
 
-        return new YouTubeVideoDto(
-            VideoId: video.Id,
-            Title: video.Snippet.Title,
-            Description: video.Snippet.Description,
-            ThumbnailUrl: video.Snippet.Thumbnails.Medium.Url,
-            PublishedAt: video.Snippet.PublishedAtDateTimeOffset?.UtcDateTime ?? DateTime.UtcNow,
-            Duration: video.ContentDetails.Duration,
-            ViewCount: (int)(video.Statistics.ViewCount ?? 0)
-        );
+            return new YouTubeVideoDto(
+                VideoId: video.Id,
+                Title: video.Snippet.Title,
+                Description: video.Snippet.Description,
+                ThumbnailUrl: video.Snippet.Thumbnails?.Medium?.Url ?? "",
+                PublishedAt: video.Snippet.PublishedAtDateTimeOffset?.UtcDateTime ?? DateTime.UtcNow,
+                Duration: video.ContentDetails?.Duration ?? "",
+                ViewCount: (int)(video.Statistics?.ViewCount ?? 0)
+            );
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

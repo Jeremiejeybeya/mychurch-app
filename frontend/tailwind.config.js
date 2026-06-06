@@ -4,13 +4,26 @@ export default {
   theme: {
     extend: {
       colors: {
-        blue:  { DEFAULT: '#1A56DB', dark: '#0F3A8A', light: '#EBF2FF' },
-        gold:  { DEFAULT: '#F5A623', dark: '#C07B00', light: '#FFF8EB' },
-        navy:  { DEFAULT: '#0D1B3E' }
+        blue: {
+          DEFAULT: '#1A56DB',
+          dark: '#0F3A8A',
+          light: '#EBF2FF',
+        },
+        gold: {
+          DEFAULT: '#F5A623',
+          dark: '#C07B00',
+          light: '#FFF8EB',
+        },
+        navy: {
+          DEFAULT: '#0D1B3E',
+        }
       },
       fontFamily: {
         syne: ['Syne', 'sans-serif'],
-        inter: ['Inter', 'sans-serif']
+        inter: ['Inter', 'sans-serif'],
+      },
+      backgroundImage: {
+        'gradient-navy': 'linear-gradient(135deg, #0D1B3E 0%, #1A3A8A 100%)',
       }
     }
   },

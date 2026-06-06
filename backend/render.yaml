@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: mychurch-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: Jwt__Key
+        sync: false
+      - key: Jwt__Issuer
+        value: MyChurchAPI
+      - key: Jwt__Audience
+        value: MyChurchApp
+      - key: AllowedOrigins
+        sync: false
+      - key: YouTube__ApiKey
+        sync: false
+      - key: YouTube__ChannelId
+        sync: false
+      - key: Stripe__PublishableKey
+        sync: false
+      - key: Stripe__SecretKey
+        sync: false
+      - key: Stripe__WebhookSecret
+        sync: false

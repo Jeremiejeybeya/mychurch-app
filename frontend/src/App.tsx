@@ -11,7 +11,6 @@ import ActivitiesPage from './pages/ActivitiesPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ProfilePage from './pages/ProfilePage'
-import AdminPage from './pages/AdminPage'
 import { useAuthStore } from './store/slices/authStore'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -34,7 +33,6 @@ export default function App() {
         <Route path="departments" element={<DepartmentsPage />} />
         <Route path="activities" element={<ActivitiesPage />} />
         <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="admin/*" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
       </Route>
     </Routes>
   )

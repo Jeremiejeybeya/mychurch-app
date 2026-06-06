@@ -6,17 +6,23 @@ backend/**/*.db-shm
 backend/**/*.db-wal
 *.user
 *.suo
+.vs/
+
+# Secrets — NE JAMAIS commiter
+**/appsettings.Production.json
+**/appsettings.Development.json
+**/.env
+**/.env.local
 
 # Node / React
 frontend/node_modules/
 frontend/dist/
-frontend/.env
+frontend/.env.local
 
-# Secrets
-**/appsettings.*.json
-!**/appsettings.json
+# Migrations (optionnel — décommentez si vous voulez les exclure)
+# backend/MyChurch.Infrastructure/Data/Migrations/
 
 # IDE
-.vs/
 .vscode/
 *.DS_Store
+Thumbs.db
