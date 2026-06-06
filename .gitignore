@@ -1,0 +1,22 @@
+# .NET
+backend/*/bin/
+backend/*/obj/
+backend/**/*.db
+backend/**/*.db-shm
+backend/**/*.db-wal
+*.user
+*.suo
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Secrets
+**/appsettings.*.json
+!**/appsettings.json
+
+# IDE
+.vs/
+.vscode/
+*.DS_Store
