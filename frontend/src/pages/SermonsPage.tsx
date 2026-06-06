@@ -5,8 +5,8 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 const DEMO: Sermon[] = [
-  {id:'1',title:'La foi qui déplace les montagnes',description:'Une prédication puissante sur la foi et la confiance en Dieu selon Matthieu 17.',speaker:'Pasteur Jean',preachedAt:'2025-06-02',youTubeVideoId:'dQw4w9WgXcQ',scriptureReference:'Matthieu 17:20',viewCount:1240,series:'Foi & Puissance',isActive:true},
-  {id:'2',title:'Marcher dans la grâce divine',description:'Découvrez comment vivre sous la grâce de Dieu chaque jour de votre vie.',speaker:'Pasteur Marie',preachedAt:'2025-05-25',youTubeVideoId:'dQw4w9WgXcQ',scriptureReference:'Éphésiens 2:8',viewCount:987,series:'Vie Chrétienne',isActive:true},
+    { id: '1', title: 'Au milieu de la nuit', description: 'Une prédication puissante sur la foi et la confiance en Dieu selon Matthieu 17.', speaker: 'Jeremie Beya', preachedAt: '2025-06-02', youTubeVideoId:'https://www.youtube.com/watch?v=pkwc32PrsPc&t=1983s',scriptureReference:'Matthieu 17:20',viewCount:1240,series:'Foi & Puissance',isActive:true},
+    { id: '2', title: 'Marcher dans la grâce divine', description: 'Découvrez comment vivre sous la grâce de Dieu chaque jour de votre vie.', speaker: 'Pasteur Marie', preachedAt: '2025-05-25', youTubeVideoId:'https://www.youtube.com/watch?v=cHW4ivtiSqU&t=1725s',scriptureReference:'Éphésiens 2:8',viewCount:987,series:'Vie Chrétienne',isActive:true},
   {id:'3',title:"Les fruits de l'Esprit Saint",description:'Étude approfondie des 9 fruits mentionnés en Galates 5.',speaker:'Pasteur Jean',preachedAt:'2025-05-18',youTubeVideoId:'dQw4w9WgXcQ',scriptureReference:'Galates 5:22',viewCount:2100,series:'Esprit & Vie',isActive:true},
   {id:'4',title:'La prière qui change tout',description:'Apprendre à prier avec puissance et efficacité selon la Parole.',speaker:'Pasteur Marie',preachedAt:'2025-05-11',youTubeVideoId:'dQw4w9WgXcQ',scriptureReference:'Jacques 5:16',viewCount:1580,series:'Vie de Prière',isActive:true},
   {id:'5',title:'Servir avec joie',description:"Comment servir Dieu et les autres avec un cœur joyeux.",speaker:'Pasteur Jean',preachedAt:'2025-05-04',youTubeVideoId:'dQw4w9WgXcQ',scriptureReference:'Romains 12:11',viewCount:890,series:'Service & Ministère',isActive:true},
@@ -24,7 +24,10 @@ function Player({sermon,onClose}:{sermon:Sermon;onClose:()=>void}) {
       <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',padding:'0 20px'}}>
         <div style={{background:'#111',borderRadius:16,overflow:'hidden',marginBottom:16,aspectRatio:'16/9'}}>
           {sermon.youTubeVideoId
-            ? <iframe src={`https://www.youtube.com/embed/${sermon.youTubeVideoId}?autoplay=1`} style={{width:'100%',height:'100%',border:'none'}} allow="autoplay;encrypted-media" allowFullScreen />
+                      ? <iframe src={sermon.youTubeVideoId?.includes('youtube.com') || sermon.youTubeVideoId?.includes('youtu.be')
+                          ? sermon.youTubeVideoId.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/')
+                          : `https://www.youtube.com/embed/${sermon.youTubeVideoId}?autoplay=1`
+                      } style={{width:'100%',height:'100%',border:'none'}} allow="autoplay;encrypted-media" allowFullScreen />
             : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.3)',fontSize:40}}>▶</div>
           }
         </div>
